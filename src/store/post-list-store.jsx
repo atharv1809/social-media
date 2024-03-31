@@ -2,6 +2,7 @@ import { createContext, useReducer } from "react";
 export const PostListContext=createContext({
     postList: [],
     addPost: () => {},
+    addInitialPosts: () => {},
     deletePost: () => {},
 });
 const postListReducer=(currPostList,action)=>
@@ -10,9 +11,12 @@ const postListReducer=(currPostList,action)=>
     if(action.type==='DELETE_POST'){
         newPostList=currPostList.filter((post)=>post.id!==action.payload.postId);
     }
-    else{
+    else if(action.type==='ADD_POST'){
         action.payload.tags=action.payload.tags.filter((tag)=>tag!==' ');
         newPostList=[action.payload,...currPostList];
+    }
+    else if(action.type==='ADD_INITIAL_POSTS'){
+        newPostList=action.payload.posts;
     }
     return newPostList;
 }
@@ -29,31 +33,19 @@ function PostListProvider({children})
             tags: tags,
         }});
     }
+    const addInitialPosts=(posts)=>
+    {
+        dispatchPostList({type: 'ADD_INITIAL_POSTS',payload: {
+            posts: posts,
+        }})
+    }
     const deletePost=(postId)=>
     {
         dispatchPostList({type: 'DELETE_POST',payload: {postId: postId}});
     }
-    const [postList,dispatchPostList]=useReducer(postListReducer,DEFAULT_POST_LIST);
-    return <PostListContext.Provider value={{postList: postList, addPost: addPost, deletePost: deletePost}}>
+    const [postList,dispatchPostList]=useReducer(postListReducer,[]);
+    return <PostListContext.Provider value={{postList: postList, addPost: addPost, deletePost: deletePost, addInitialPosts: addInitialPosts}}>
         {children}
     </PostListContext.Provider>
 }
-const DEFAULT_POST_LIST=[
-    {
-        id: "1",
-        title: "Going to Mumbai",
-        body: "My body 1",
-        reactions: 2,
-        userId: "user-9",
-        tags: ["Vacation","Mumbai","Enjoying"],
-    },
-    {
-        id: "2",
-        title: "Going to Pune",
-        body: "My body 2",
-        reactions: 100,
-        userId: "user-5",
-        tags: ["Internship","Pune","Enjoying"],
-    },
-];
 export default PostListProvider;
